@@ -1,26 +1,58 @@
-# TyG-Discordance-Profiling
-Code for "TyG-Biomarker Discordance Profiling Identifies Metabolically Heterogeneous Phenotypes with Divergent Cardiovascular and Diabetes Risk"
-# TyG-Biomarker Discordance Profiling
+# TyG–Biomarker Discordance Profiling
 
-This repository contains the analysis code for the paper:
+Unsupervised profiling of TyG–biomarker discordance in sex-stratified cohorts using UMAP, Leiden clustering, and Gaussian Mixture Models (GMM). Downstream analyses cover cluster-specific TyG effects, prevalent disease associations, medication patterns, and longitudinal MACE/T2D risk.
 
-**TyG-Biomarker Discordance Profiling Identifies Metabolically Heterogeneous Phenotypes 
-with Divergent Cardiovascular and Diabetes Risk: Metabolomic Characterization from the 
-UK Biobank**
+## Pipeline Overview
 
-*Lipids in Health and Disease* (2026)
+| Script | Description | Key Output |
+|--------|-------------|------------|
+| `01_clustering.R` | Data prep · UMAP · Leiden · GMM soft assignment | `TyG_clustering_results.RData` |
+| `02_biomarker_profiles.R` | Cluster weight bar charts + residual scatter plots | `TyG_cluster_overview.png/pdf` |
+| `03_overall_tyg_effects.R` | Forest plots of TyG → biomarker effects (overall) | `TyG_overall_effects.png/pdf` |
+| `04_cluster_tyg_effects.R` | Cluster-specific weighted regression + Excel table | `TyG_cluster_effects.png/pdf`, `Supplementary_Table_Cluster_TyG_Effects.xlsx` |
+| `05_prevalent_disease.R` | ALR-logistic regression for prevalent diseases | `TyG_prevalent_disease_forest.png/pdf` |
+| `06_medication.R` | ALR-logistic regression for medication use | `TyG_medication_forest.png/pdf` |
+| `07_survival.R` | ALR-Cox models for MACE and incident T2D | `TyG_survival_forest.png/pdf` |
 
-## Overview
+## Requirements
 
-This study introduces a framework for identifying individuals whose multisystem biomarker 
-profiles deviate systematically from TyG-index-based expectations. Using data from 496,724 
-UK Biobank participants, we applied UMAP dimensionality reduction and graph-based soft 
-clustering to residuals across eight routine biomarkers (BMI, SBP, DBP, eGFR, CRP, HDL, 
-LDL, total cholesterol) to define six reproducible discordance profiles per sex, and 
-characterized their associations with cardiometabolic disease, incident MACE, type 2 
-diabetes, and NMR plasma metabolomics.
+```r
+install.packages(c(
+  "dplyr", "tibble", "tidyr", "purrr", "readr",
+  "uwot", "igraph", "mvtnorm",
+  "ggplot2", "cowplot", "patchwork", "ggh4x", "scales",
+  "openxlsx", "survival"
+))
+```
 
-## Data Availability
+## Data
 
-The UK Biobank data used in this study are available to approved researchers via 
-the UK Biobank Access Management System (https://www.ukbiobank.ac.uk/).
+Place `imp_data1.csv` in the working directory before running any script. The file must contain the columns listed in `01_clustering.R` (`ALL_VARS`, disease indicators, medication flags, and survival date fields).
+
+## Usage
+
+Run scripts in order; each script loads the `.RData` produced by `01_clustering.R`.
+
+```r
+source("01_clustering.R")   # ~10–20 min depending on sample size
+source("02_biomarker_profiles.R")
+source("03_overall_tyg_effects.R")
+source("04_cluster_tyg_effects.R")
+source("05_prevalent_disease.R")
+source("06_medication.R")
+source("07_survival.R")
+```
+
+All outputs are written to the working directory (set `OUTPUT_DIR` in each script to redirect).
+
+## Cluster Labels
+
+| Label | Phenotype |
+|-------|-----------|
+| BC | Baseline Concordant (reference) |
+| DHT | Discordant Hypertensive |
+| DRI | Discordant Renal Insufficiency |
+| DHL | Discordant High HDL-Lipid |
+| DOB | Discordant Obesity |
+| DPL | Discordant Pro-Atherogenic Lipid |
+| DIS | Discordant Inflammatory |
